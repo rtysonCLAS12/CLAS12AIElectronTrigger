@@ -23,3 +23,5 @@ Class to test the Clas12AIElTriggerHipo implementation, by plotting:
 - the classifier response, the accuracy
 - the classifier efficiency and purity as a function of the lower threshold on the response
 - the purity and efficiency as a function of momentum, with a comparison to the CLAS12 Trigger purity
+
+NB: You need to change the file path defined in fName to point to the correct location. 
