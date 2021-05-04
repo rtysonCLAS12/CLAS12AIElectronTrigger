@@ -26,7 +26,7 @@ Interface with the basic required methods to load the trained neural network, pa
 
 ## Clas12AIElTriggerHipo.java
 
-Implements Clas12AIElTrigger when reading from a .hipo file (see [Hipo Libaray](https://github.com/gavalian/hipo) ). Some further methods were added to test the neural network performance and compare it to the CLAS12 Electron trigger.
+Implements Clas12AIElTrigger when reading from a .hipo file (see [Hipo Library](https://github.com/gavalian/hipo) ). Some further methods were added to test the neural network performance and compare it to the CLAS12 Electron trigger.
 
 ## Tester.java
 
