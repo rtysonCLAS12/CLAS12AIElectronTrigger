@@ -20,7 +20,6 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 public class Clas12AIElTriggerHipo implements Clas12AIElTrigger {
 	String fName; 
 	int NEvents;
-	//String networkLoc="/home/richardt/PhD1/aiTrigger/trained_CNN_Concat_Sector_binary.h5";
 	String networkLoc="trained_model.h5";
 	ComputationGraph network;
 	
