@@ -1,11 +1,10 @@
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import javax.swing.JFrame;
 
 import org.jlab.groot.data.GraphErrors;
 import org.jlab.groot.data.H1F;
-import org.jlab.groot.graphics.EmbeddedCanvas;
+import org.jlab.groot.ui.TCanvas;
 
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
@@ -31,6 +30,11 @@ public class Tester {
 		 * When we initialise the Clas12AIElTriggerHipo we need to pass the number of events to predict on.
 		 * Each event has 6 predictions, one per sector.
 		 * We can then read and predict on these events using the Predict function.
+		 * The output of the classifer (response) is the probability that an event is of the positive
+		 * sample in column 0, and of the negative sample in column 1. We can convert this to just
+		 * a list of 1 if the classifier predicts that an electron is present, and 0 otherwise by
+		 * applying a lower threshold to the response.
+		 * We can then loop over each sector in each event to call or not the trigger for that sector.
 		 */
 		int NEvents=100;
 		Clas12AIElTriggerHipo AITrigger = new Clas12AIElTriggerHipo(fName,NEvents);
@@ -43,6 +47,17 @@ public class Tester {
 		double rate=BatchSize/timeElapsed;
 		System.out.format("%nTook %.3f to read and predict on %d Events for Batch Size of %d %n",timeElapsed,NEvents,BatchSize);
 		System.out.format(" ie rate of %.3f events per second %n%n",rate);
+		
+		int[] roundedOutput=AITrigger.ApplyResponseThreshold(output,0.2);
+		
+		for(int event=0; event<(NEvents*6);event+=6) {
+			for(int sector=0;sector<6;sector++) {
+				if(roundedOutput[event+sector]==1) {
+					System.out.println("Event "+event+" is predicted to have an electron in sector "+sector);
+				}
+			}
+		}
+		System.out.println("");
 		
 		/*
 		 * Here we want to reload data for testing. This is due to the fact that for testing we need to sort
@@ -249,20 +264,16 @@ public class Tester {
 		gPur.setMarkerColor(2);
 		gPur.setMarkerStyle(8);
 		
-		JFrame frameMP = new JFrame("Metrics vs Momentum");
-		frameMP.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		EmbeddedCanvas canvasMP = new EmbeddedCanvas();
-		frameMP.setSize(800, 500);
-		canvasMP.getPad(0).setTitle("Metrics vs Momentum");
+		TCanvas canvasMP = new TCanvas("Metrics vs Momentum",800,500);
+		canvasMP.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+		canvasMP.getCanvas().getPad(0).setLegend(true);
+		canvasMP.getCanvas().getPad(0).setLegendPosition(400, 300);
+		canvasMP.setLocationRelativeTo(null);
+		canvasMP.setVisible(true);
 		
 		canvasMP.draw(gEff,"AP");
 		canvasMP.draw(gPur,"sameAP");
-		
-		canvasMP.getPad(0).setLegend(true);
-		canvasMP.getPad(0).setLegendPosition(400, 300);
-		frameMP.add(canvasMP);
-		frameMP.setLocationRelativeTo(null);
-		frameMP.setVisible(true);
+		canvasMP.getCanvas().getPad(0).setTitle(canvasMP.getTitle());
 		
 		if(wC12TriggerComp) {
 			gC12Pur.setTitle("CLAS12 Trigger Purity (Green)");
@@ -271,22 +282,17 @@ public class Tester {
 			gC12Pur.setMarkerColor(3);
 			gC12Pur.setMarkerStyle(8);
 			
-			
-			JFrame frameMPwC12 = new JFrame("Metrics vs Momentum with C12 Trigger");
-			frameMPwC12.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			EmbeddedCanvas canvasMPwC12 = new EmbeddedCanvas();
-			frameMPwC12.setSize(800, 500);
-			canvasMPwC12.getPad(0).setTitle("Metrics vs Momentum");
+			TCanvas canvasMPwC12 = new TCanvas("Metrics vs Momentum with CLAS12 Trigger Comparison",800,500);
+			canvasMPwC12.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+			canvasMPwC12.getCanvas().getPad(0).setLegend(true);
+			canvasMPwC12.getCanvas().getPad(0).setLegendPosition(400, 100);
+			canvasMPwC12.setLocationRelativeTo(null);
+			canvasMPwC12.setVisible(true);
 			
 			canvasMPwC12.draw(gEff,"AP");
 			canvasMPwC12.draw(gPur,"sameAP");
 			canvasMPwC12.draw(gC12Pur,"sameAP");
-			
-			canvasMPwC12.getPad(0).setLegend(true);
-			canvasMPwC12.getPad(0).setLegendPosition(400, 150);
-			frameMPwC12.add(canvasMPwC12);
-			frameMPwC12.setLocationRelativeTo(null);
-			frameMPwC12.setVisible(true);
+			canvasMPwC12.getCanvas().getPad(0).setTitle(canvasMPwC12.getTitle());
 		}
 	}//End of PlotMetricsVSP
 	
@@ -395,11 +401,10 @@ public class Tester {
 	 */
 	public static void PlotRatesVSBatchSize(GraphErrors gRates, String predType) {
 		
-		JFrame frameR = new JFrame("Average "+predType+" Rate vs Batch Size");
-		frameR.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		EmbeddedCanvas canvasR = new EmbeddedCanvas();
-		frameR.setSize(800, 500);
-		canvasR.getPad(0).setTitle("Average "+predType+" Rate vs Batch Size");
+		TCanvas canvasR = new TCanvas("Average "+predType+" Rate vs Batch Size",800,500);
+		canvasR.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+		canvasR.setLocationRelativeTo(null);
+		canvasR.setVisible(true);
 		
 		gRates.setTitle("Average "+predType+" Rate vs Batch Size");
 		gRates.setTitleX("Batch Size");
@@ -407,10 +412,7 @@ public class Tester {
 		gRates.setMarkerColor(3);
 		gRates.setMarkerStyle(8);
 		canvasR.draw(gRates,"AP");
-		
-		frameR.add(canvasR);
-		frameR.setLocationRelativeTo(null);
-		frameR.setVisible(true);
+		canvasR.getCanvas().getPad(0).setTitle(canvasR.getTitle());
 	}//End of PlotRatesVSBatchSize
 	
 	/*
@@ -453,11 +455,12 @@ public class Tester {
 		
 		System.out.format("%n Best Purity at Efficiency above 0.995: %.3f at a threshold on the response of %.3f %n%n",bestPuratEff0p995,bestRespTh);
 		
-		JFrame frameMR = new JFrame("Metrics vs Threshold on Response");
-		frameMR.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		EmbeddedCanvas canvasMR = new EmbeddedCanvas();
-		frameMR.setSize(800, 500);
-		canvasMR.getPad(0).setTitle("Metrics vs Threshold on Response");
+		TCanvas canvasMR = new TCanvas("Metrics vs Response",800,500);
+		canvasMR.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+		canvasMR.getCanvas().getPad(0).setLegend(true);
+		canvasMR.getCanvas().getPad(0).setLegendPosition(400, 300);
+		canvasMR.setLocationRelativeTo(null);
+		canvasMR.setVisible(true);
 		
 		gAcc.setTitle("Accuracy (Green)");
 		gAcc.setTitleX("Classifier Response");
@@ -479,12 +482,7 @@ public class Tester {
 		gEff.setMarkerColor(4);
 		gEff.setMarkerStyle(8);
 		canvasMR.draw(gEff,"sameAP");
-		
-		canvasMR.getPad(0).setLegend(true);
-		canvasMR.getPad(0).setLegendPosition(400, 300);
-		frameMR.add(canvasMR);
-		frameMR.setLocationRelativeTo(null);
-		frameMR.setVisible(true);
+		canvasMR.getCanvas().getPad(0).setTitle(canvasMR.getTitle());
 		
 		return bestRespTh;
 	}//End of PlotMetricsVSResponse
@@ -499,12 +497,10 @@ public class Tester {
 	 *
 	 */
 	public static void PlotPredRates(int NPreds, H1F hRates, H1F hTimes) {
-		JFrame frameRates = new JFrame("Event Rate");
-		frameRates.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		EmbeddedCanvas canvasRates = new EmbeddedCanvas();
-		canvasRates.getPad(0).getAxisY().setLog(true);
-		frameRates.setSize(800, 500);
-		canvasRates.getPad(0).setTitle("Event Rate");
+		TCanvas canvasRates = new TCanvas("Event Rate",800,500);
+		canvasRates.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+		canvasRates.setLocationRelativeTo(null);
+		canvasRates.setVisible(true);
 		
 		hRates.setTitle("Event Rate");
 		hRates.setTitleX("Event Rate [Hz]");
@@ -513,17 +509,12 @@ public class Tester {
 		hRates.setLineColor(4);
 		hRates.setFillColor(4);
 		canvasRates.draw(hRates);
+		canvasRates.getCanvas().getPad(0).setTitle(canvasRates.getTitle());
 		
-		frameRates.add(canvasRates);
-		frameRates.setLocationRelativeTo(null);
-		frameRates.setVisible(true);
-		
-		JFrame frameTimes = new JFrame("Prediction Time for "+NPreds+" predictions (6 per Event)");
-		frameTimes.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		EmbeddedCanvas canvasTimes = new EmbeddedCanvas();
-		canvasTimes.getPad(0).getAxisY().setLog(true);
-		frameTimes.setSize(800, 500);
-		canvasTimes.getPad(0).setTitle("Prediction Time for "+NPreds+" predictions (6 per Event)");
+		TCanvas canvasTimes = new TCanvas("Prediction Time for "+NPreds+" predictions (6 per Event)",800,500);
+		canvasTimes.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+		canvasTimes.setLocationRelativeTo(null);
+		canvasTimes.setVisible(true);
 		
 		hTimes.setTitle("Prediction Time for "+NPreds+" predictions (6 per Event)");
 		hTimes.setTitleX("Prediction Time [s]");
@@ -532,10 +523,7 @@ public class Tester {
 		hTimes.setLineColor(4);
 		hTimes.setFillColor(4);
 		canvasTimes.draw(hTimes);
-		
-		frameTimes.add(canvasTimes);
-		frameTimes.setLocationRelativeTo(null);
-		frameTimes.setVisible(true);
+		canvasTimes.getCanvas().getPad(0).setTitle(canvasTimes.getTitle());
 		
 	}//End of PlotPredRates
 	
@@ -559,14 +547,15 @@ public class Tester {
 			}
 		}
 		
-		JFrame frameResp = new JFrame("Classifier Response");
-		frameResp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		EmbeddedCanvas canvasResp = new EmbeddedCanvas();
-		canvasResp.getPad(0).getAxisY().setLog(true);
-		frameResp.setSize(800, 500);
-		canvasResp.getPad(0).setTitle("Classifier Response");
+		TCanvas canvasResp = new TCanvas("Classifier Response",800,500);
+		canvasResp.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
+		canvasResp.getCanvas().getPad(0).getAxisY().setLog(true);
+		canvasResp.getCanvas().getPad(0).setLegend(true);
+		canvasResp.getCanvas().getPad(0).setLegendPosition(100, 20);
+		canvasResp.setLocationRelativeTo(null);
+		canvasResp.setVisible(true);
 		
-		hRespPos.setTitle("Positive Sample Response");
+		hRespPos.setTitle("Positive Sample Response (Blue)");
 		hRespPos.setTitleX("Classifier Response");
 		hRespPos.setTitleY("Counts");
 		hRespPos.setLineWidth(2);
@@ -574,18 +563,14 @@ public class Tester {
 		hRespPos.setFillColor(4);
 		canvasResp.draw(hRespPos);
 		
-		hRespNeg.setTitle("Negative Sample Response");
+		hRespNeg.setTitle("Negative Sample Response (Red)");
 		hRespNeg.setTitleX("Classifier Response");
 		hRespNeg.setTitleY("Counts");
 		hRespNeg.setLineWidth(3);
 		hRespNeg.setLineColor(2);
 		canvasResp.draw(hRespNeg,"same");
+		canvasResp.getCanvas().getPad(0).setTitle(canvasResp.getTitle());
 		
-		canvasResp.getPad(0).setLegend(true);
-		canvasResp.getPad(0).setLegendPosition(100, 20);
-		frameResp.add(canvasResp);
-		frameResp.setLocationRelativeTo(null);
-		frameResp.setVisible(true);
 		
 	}//End of PlotResponse
 

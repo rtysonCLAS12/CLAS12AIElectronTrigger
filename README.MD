@@ -10,7 +10,7 @@ To use a GPU you need to change the artifactId for the deeplearning4j and nd4j d
 
 ## Clas12AIElTrigger.java
 
-Interface with the basic required methods to load the trained neural network, parse data into the required format as input for the network, and to return the network predictions on the parsed data.
+Interface with the basic required methods to load the trained neural network, parse data into the required format as input for the network, and to return the network predictions on the parsed data. These can then be rounded to 1 (0) if the predictions are above a certain threshold.
 
 ## Clas12AIElTriggerHipo.java
 

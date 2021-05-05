@@ -23,6 +23,21 @@ public interface Clas12AIElTrigger {
 	public INDArray Predict(int BatchSize);
 	
 	/*
+	 * Applies a threshold to the classifier output (response). This varies from 0 to 1, and so we
+	 * round this to 1 (0) if the response is above (equal or below) the threshold.
+	 * 
+	 * Arguments:
+	 * 			Predictions: An INDArray containing the classifier output. The is the probability that
+	 *  an event is of the positive sample in column 0, and of the negative sample in column 1. 
+	 * 			Threshold: The desired threshold on the response.
+	 * 
+	 * Returns:
+	 * 			The response of the classifier rounded based on the inputed threshold.
+	 * 	 
+	 */
+	public int[] ApplyResponseThreshold(INDArray Predictions, double Threshold);
+	
+	/*
 	 * Returns the data parsed into the correct format for the AI Trigger classifier.
 	 *
 	 * 

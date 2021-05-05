@@ -211,6 +211,32 @@ public class Clas12AIElTriggerHipo implements Clas12AIElTrigger {
 	}//END FillECArray
 	
 	/*
+	 * Applies a threshold to the classifier output (response). This varies from 0 to 1, and so we
+	 * round this to 1 (0) if the response is above (equal or below) the threshold.
+	 * 
+	 * Arguments:
+	 * 			Predictions: An INDArray containing the classifier output. The is the probability that
+	 *  an event is of the positive sample in column 0, and of the negative sample in column 1. 
+	 * 			Threshold: The desired threshold on the response.
+	 * 
+	 * Returns:
+	 * 			The response of the classifier rounded based on the inputed threshold.
+	 * 	 
+	 */
+	public int[] ApplyResponseThreshold(INDArray Predictions, double Threshold){
+		int NPreds=(int) Predictions.shape()[0];
+		int[] roundedPredictions=new int[NPreds];
+		for(int i=0;i<NPreds;i+=1) {
+			if(Predictions.getFloat(i,0)>Threshold) {
+				roundedPredictions[i]=1;
+			} else {
+				roundedPredictions[i]=0;
+			}
+		}
+		return roundedPredictions;
+	}
+	
+	/*
 	 * Returns the data parsed into the correct format for the AI Trigger classifier.
 	 * This is meant for testing purposes, and therefore returns a ND4J MultiDataset
 	 * that also contains the true Labels for each event and the momentum of the DC track.
