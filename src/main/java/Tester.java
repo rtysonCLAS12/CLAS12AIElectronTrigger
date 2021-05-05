@@ -18,31 +18,6 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
 
-
-/*	GPU Stuff:
- * check https://deeplearning4j.konduit.ai/config/backends/config-cudnn
- *       https://deeplearning4j.konduit.ai/config/backends
- *       
- * Redist for version 10.2
-  <dependency>
-    <groupId>org.bytedeco</groupId>
-	    <artifactId>cuda-platform-redist</artifactId>
-    <version>10.2-7.6-1.5.3</version>
-  </dependency>
- * 
- * 
- * artifact ID:
- * For deeplearning4j:
- * deeplearning4j-core for CPU
- * deeplearning4j-cuda-10.0 (or 10.1,10.2)
- * 
- * For nd4j:
- * nd4j-native-platform when using CPU(or just nd4j-native)
- * nd4j-cuda-10.2 when using GPU. Available CUDA version are 9.2, 10, 10.1, 10.2
- */
-
-
-
 public class Tester {
 	//Need to change the following to point to the input .hipo file
 	static String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/out_clas_005038.evio.00105-00109.hipo";

@@ -6,7 +6,7 @@ This repository contains the java implementation of a deep learning approach to 
 
 The neural network implementation relies on the ND4J and Deeplearning4j libraries, which are included in the java project using maven in pom.xml. By default these are set up to use a CPU.
 
-To use a GPU you can change the artifactID of the deeplearning4j dependency to deeplearning4j-cuda-10.2, and the artifactID of the org.nd4j dependency to nd4j-cuda-10.2. 
+To use a GPU you need to change the artifactId for the deeplearning4j and nd4j dependicies in the pom.xml file. Currently, the lines with "deeplearning4j-cuda-10.2" and "nd4j-cuda-10.2" are commented out but you can switch this out with the current artifactIds for both to switch from CPU to GPU usage. 
 
 ## Clas12AIElTrigger.java
 
