@@ -1,3 +1,5 @@
+package org.jlab.trigger;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
