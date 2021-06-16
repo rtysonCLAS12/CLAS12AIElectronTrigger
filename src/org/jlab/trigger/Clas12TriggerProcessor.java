@@ -39,14 +39,14 @@ public class Clas12TriggerProcessor implements TriggerProcessor {
 	 *  
 	 */
     public void applyThreshold(INDArray result) {
-	    int NPreds=(int) result.shape()[0];
-		for(int i=0;i<NPreds;i+=1) {
-			if(result.getFloat(i,0)>inferenceThreshold) {
-				result.putScalar(new int[] {i,0}, 1);
-			} else {
-				result.putScalar(new int[] {i,0}, 0);
-			}
-		}
+    	int NPreds=(int) result.shape()[0];
+    	for(int i=0;i<NPreds;i+=1) {
+        	if(result.getFloat(i,0)>inferenceThreshold) {
+            	result.putScalar(new int[] {i,0}, 1);
+            } else {
+            	result.putScalar(new int[] {i,0}, 0);
+            }
+        }
 	}
     
     /**
@@ -55,17 +55,17 @@ public class Clas12TriggerProcessor implements TriggerProcessor {
 	 */
     public void initNetwork(){
     	try {
-			network = KerasModelImport.importKerasModelAndWeights("trained_model.h5");
-		} catch (IOException e) {
-			System.out.println("IO Exception");
-			e.printStackTrace();
-		} catch (InvalidKerasConfigurationException e) {
-			System.out.println("Invalid Keras Config");
-			e.printStackTrace();
-		} catch (UnsupportedKerasConfigurationException e) {
-			System.out.println("Unsupported Keras Config");
-			e.printStackTrace();
-		}
+        	network = KerasModelImport.importKerasModelAndWeights("trained_model.h5");
+        } catch (IOException e) {
+        	System.out.println("IO Exception");
+        	e.printStackTrace();
+        } catch (InvalidKerasConfigurationException e) {
+        	System.out.println("Invalid Keras Config");
+        	e.printStackTrace();
+        } catch (UnsupportedKerasConfigurationException e) {
+        	System.out.println("Unsupported Keras Config");
+        	e.printStackTrace();
+        }
     }
     
     /**
@@ -92,7 +92,7 @@ public class Clas12TriggerProcessor implements TriggerProcessor {
         processor.setThreshold(0.2);
         int NBatches=0;
         while(stream.hasNext()){
-        	System.out.println("Batch: "+NBatches);
+            System.out.println("Batch: "+NBatches);
             processor.processNext(stream);  
             System.out.println("");
             NBatches++;
