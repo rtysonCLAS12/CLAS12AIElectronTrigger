@@ -5,8 +5,6 @@
  */
 package org.jlab.trigger;
 
-import java.util.Vector;
-
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.io.HipoReader;
@@ -66,7 +64,7 @@ public class HipoInputDataStream implements InputDataStream {
         	event.read(echits);
         	//Fill output arrays for each sector
         	for(int sector=1;sector<7;sector++) {
-            	DCArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(FillDCArray(sector,0,7));
+            	DCArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(FillDCArray(sector));
             	ECArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(FillECArray(sector));		
             	nPred++;
             }
