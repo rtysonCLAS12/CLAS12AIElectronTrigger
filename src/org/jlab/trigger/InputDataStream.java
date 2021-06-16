@@ -5,15 +5,16 @@
  */
 package org.jlab.trigger;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+
 /**
  *
- * @author gavalian
+ * @authors gavalian, tyson
  */
-public class HipoInputDataStream implements InputDataStream {
-    HipoReader reader = null;
+public interface InputDataStream {
     public void open(String url);
     public void setBatch(int size);
-    public List<INDArray> next();
     public boolean hasNext();
-    public void apply(List<INDArray> result);
+    public INDArray[] next();
+    public void apply(INDArray result);
 }
