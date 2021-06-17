@@ -1,0 +1,121 @@
+import numpy as np
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.utils import class_weight
+from sklearn import metrics
+from sklearn import preprocessing
+from sklearn import decomposition
+from matplotlib import pyplot as plt
+from matplotlib.colors import LogNorm
+from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D
+from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense
+from tensorflow.keras import metrics as mt
+import math
+import seaborn as sns
+
+
+#saveDir='/home/richardt/public_html/aiTrig/trainingSample/dataVisuPosSector/'
+#dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_signal0.txt")
+
+#saveDir='/home/richardt/public_html/aiTrig/trainingSample/dataVisuPos/'
+#dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/signal0.txt")
+
+saveDir='/home/richardt/public_html/aiTrig/trainingSample/dataVisuPos5SL/'
+dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_5sl_signal0.txt")
+
+#saveDir='/home/richardt/public_html/aiTrig/trainingSample/dataVisuNeg/'
+#dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/bg0.txt")
+
+#saveDir='/home/richardt/public_html/aiTrig/trainingSample/dataVisuNegSector/'
+#dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_bg0.txt")
+
+#saveDir='/home/richardt/public_html/aiTrig/trainingSample/dataVisuNeg5SL/'
+#dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_5sl_bg0.txt")
+
+#dataIn=np.loadtxt("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/bgSmall.txt")
+#bg=np.load("bg.npy")
+
+print(dataIn.shape)
+#print(bg.shape)
+
+rowsSig = dataIn.shape[0]
+colsSig = dataIn.shape[1]
+
+#rowsBg = bg.shape[0]
+#colsBg = bg.shape[1]
+
+#112*66 = 672 dc cols
+#68+2*62+6*36=408 ec cols
+#1080 total
+
+#for x in range(0, rowsSig -1):
+for x in range(0, 20):
+    print("Row: "+str(x))
+    countV=0
+    countS=0
+    ECal=np.zeros((6,72))
+    countW=0
+    countSL=0
+    dc=np.zeros((6,112))
+    for y in range(0, colsSig - 1):
+        if(y<672):
+            if (countW == 112):
+                countSL=countSL+1
+                countW=0
+            dc[countSL,countW]=dataIn[x,y]
+            #print("SL "+str(countSL)+" wire "+str(countW))
+            #if(dataIn[x,y]!=0):
+                #print("None zero in superlayer "+str(countSL+1)+" "+str(dc[countSL,countW]))
+            countW=countW+1
+        else:
+            #print("View "+str(countV)+" strip "+str(countS))
+            if(countV==0):
+                if(countS==68):
+                    countV=countV+1
+                    countS=0
+            elif(countV==1 or countV==2):
+                if(countS==62):
+                   countV=countV+1
+                   countS=0 
+            else:
+                if(countS==72):
+                  countV=countV+1
+                  countS=0   
+            ECal[countV,countS]=dataIn[x,y]
+            countS=countS+1
+            
+    y_axis_labelsDC = ['1', '2','3','4', '5','6']        
+    fig=plt.figure(figsize = (20,10))
+    axDC=sns.heatmap(dc,cmap='Blues',yticklabels=y_axis_labelsDC, vmin=0, vmax=1)
+    axDC.invert_yaxis()
+    #axDC.set(xticklabels=[])
+    #axDC.tick_params(bottom=False)
+    axDC.set(xlabel="Wire")
+    axDC.set(ylabel="Superlayer")
+    plt.savefig(saveDir+'DC2_Ev'+str(x)+'.png')
+    #plt.show()
+    
+    y_axis_labels = ['PCAL U-View', 'PCAL V-View','PCAL W-View','ECIN & ECOUT U-View', 'ECIN & ECOUT V-View','ECIN & ECOUT W-View'] # labels for x-axis
+    fig=plt.figure(figsize = (20,10))
+    axEC=sns.heatmap(ECal,cmap='Blues',yticklabels=y_axis_labels,norm=LogNorm(vmin=0.0001, vmax=0.1))# , vmin=0.0001, vmax=0.1
+    axEC.invert_yaxis()
+    #ax1.set(xticklabels=[])
+    #ax1.tick_params(bottom=False)
+    axEC.set(xlabel="Strip")
+    #axEC.set(ylabel="Energy [GeV]")
+    plt.savefig(saveDir+'ECal2_Ev'+str(x)+'.png')
+    #plt.show()
+ 
+
+
+
+
+
+
+
+
+
