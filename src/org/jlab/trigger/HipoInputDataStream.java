@@ -87,7 +87,7 @@ public class HipoInputDataStream implements InputDataStream {
 	 * Returns:
 	 * 			EC image for a given sector.
 	 */
-	public INDArray FillDCArray(int sector) {
+	private INDArray FillDCArray(int sector) {
     	//Initialise array to all zeros
     	INDArray DCVals = Nd4j.zeros(6,112);
     	for (int k = 0; k < dchits.getRows(); k++) {
@@ -114,7 +114,7 @@ public class HipoInputDataStream implements InputDataStream {
 	 * Returns:
 	 * 			EC image for a given sector.
 	 */
-	public INDArray FillECArray(int sector) {
+	private INDArray FillECArray(int sector) {
     	//Initialise array to all zeros
     	INDArray ECVals = Nd4j.zeros(6,72);
     	for (int k = 0; k < echits.getRows(); k++) {
