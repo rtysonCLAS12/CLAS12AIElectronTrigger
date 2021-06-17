@@ -28,12 +28,12 @@ t0 = time.time()
 saveDir='plots/' #Directory where the plots are printed
 
 #load data separated into positive and negative samples
-signal=np.load("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_signal0_2D.npy")
+signal=np.load("data/signal0.npy")
 
 #load positive sample separated into several files
 for i in range(1, 29):
     print("signal"+str(i))
-    a = np.load("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_signal"+str(i)+"_2D.npy")
+    a = np.load("data/signal"+str(i)+".npy")
     signal=np.vstack((signal,a))
 
 #create Y label of 1 for positive sample
@@ -41,10 +41,10 @@ signalLab0=np.zeros([len(signal),1])
 signalLab1=np.ones([len(signal),1])
 signalLab=np.vstack((signalLab1,signalLab0))
 
-bg=np.load("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_bg0_2D.npy")
+bg=np.load("data/bg0.npy")
 for i in range(1,29):
     print("bg"+str(i))
-    b=np.load("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_bg"+str(i)+"_2D.npy")
+    b=np.load("data/bg"+str(i)+".npy")
     bg=np.vstack((bg,b))
     
 bg=bg[0:len(signal),:]#balance datasets

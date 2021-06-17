@@ -18,7 +18,7 @@ import math
 import seaborn as sns
 
 #shape [N,6,184]
-data=np.load("/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/trainingSamples/Sector_signal0_2D.npy")
+data=np.load("data/signal.npy")
 
 #DC in first 112 columns
 DC=data[:,:,:112,]
