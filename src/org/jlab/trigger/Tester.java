@@ -42,13 +42,13 @@ public class Tester {
 		Tester.SaveData(Data, "training/data/","0");
 		
 		//Here we measure the EventRate as a function of BatchSize.
-		//Tester.predRateVsBatchSize(Data,networkLoc);
+		Tester.predRateVsBatchSize(Data,networkLoc);
 		
 		 //plot the metrics used to evaluate the AI Trigger by specifying verbose=true.
 		int BatchSize=600;
 		int NBatches=(NEvents)/BatchSize;
 		boolean verbose=true;
-		//Tester.Test(Data, NBatches, BatchSize,1,verbose,networkLoc);
+		Tester.Test(Data, NBatches, BatchSize,1,verbose,networkLoc);
 	}
 	
 	/*
