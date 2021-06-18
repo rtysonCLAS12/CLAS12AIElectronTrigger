@@ -39,16 +39,16 @@ public class Tester {
 		String networkLoc="trained_model.h5";
 		
 		//You can save the datafiles by uncommenting the next line.
-		//Tester.SaveData(Data, "/home/richardt/PhD1/aiTrigger/eclipse-wkspace/AITrigger/training/data/");
+		Tester.SaveData(Data, "training/data/","0");
 		
 		//Here we measure the EventRate as a function of BatchSize.
-		Tester.predRateVsBatchSize(Data,networkLoc);
+		//Tester.predRateVsBatchSize(Data,networkLoc);
 		
 		 //plot the metrics used to evaluate the AI Trigger by specifying verbose=true.
 		int BatchSize=600;
 		int NBatches=(NEvents)/BatchSize;
 		boolean verbose=true;
-		Tester.Test(Data, NBatches, BatchSize,1,verbose,networkLoc);
+		//Tester.Test(Data, NBatches, BatchSize,1,verbose,networkLoc);
 	}
 	
 	/*
@@ -85,8 +85,9 @@ public class Tester {
 	 * Arguments:
 	 * 			Data: ND4J MultiDataSet containing the DC and EC features and the labels
 	 * 			loc: string to the output directory
+	 * 			endName: string set at the end of the file name for example to save multiple files
 	 */
-	public static void SaveData(MultiDataSet Data, String loc) {
+	public static void SaveData(MultiDataSet Data, String loc, String endName) {
 		long nPreds=Data.getFeatures()[0].shape()[0];
 		//Separate signal and bg files
 		INDArray DataArraySignal=Nd4j.zeros(nPreds/2,6,184);
@@ -108,8 +109,8 @@ public class Tester {
 			}
 		}
 		//Write files to desired location
-		File fileSignal = new File(loc+"signal.npy");
-		File fileBg = new File(loc+"bg.npy");
+		File fileSignal = new File(loc+"positive_"+endName+".npy");
+		File fileBg = new File(loc+"negative_"+endName+".npy");
 		try {
 			Nd4j.writeAsNumpy(DataArraySignal,fileSignal);
 			Nd4j.writeAsNumpy(DataArrayBg,fileBg);
