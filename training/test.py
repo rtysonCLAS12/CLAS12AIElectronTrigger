@@ -17,10 +17,10 @@ saveDir='plots/' #Directory where the plots are printed
 signal=np.load("data/positive_0.npy") 
 
 #load positive sample separated into several files
-#for i in range(20,29):
- #   print("signal"+str(i))
-  #  a = np.load("data/signal"+str(i)+".npy")
-   # signal=np.vstack((signal,a))
+for i in range(20,29):
+    print("signal"+str(i))
+    a = np.load("data/positive"+str(i)+".npy")
+    signal=np.vstack((signal,a))
 
 print(signal.shape)
 
@@ -30,10 +30,10 @@ signalLab1=np.ones([len(signal),1])
 signalLab=np.vstack((signalLab1,signalLab0))
 
 bg=np.load("data/negative_0.npy")
-#for i in range(20,29):
- #   print("bg"+str(i))
-  #  b=np.load("data/bg"+str(i)+".npy")
-   # bg=np.vstack((bg,b))
+for i in range(20,29):
+    print("bg"+str(i))
+    b=np.load("data/negative"+str(i)+".npy")
+    bg=np.vstack((bg,b))
     
 print(bg.shape)
 bg=bg[0:len(signal),:] #balance datasets
