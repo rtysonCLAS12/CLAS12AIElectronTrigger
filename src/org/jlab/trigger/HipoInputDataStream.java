@@ -85,7 +85,7 @@ public class HipoInputDataStream implements InputDataStream {
 	 *  		sector: sector for which to create the image
 	 *  
 	 * Returns:
-	 * 			EC image for a given sector.
+	 * 			DC image for a given sector.
 	 */
 	private INDArray FillDCArray(int sector) {
     	//Initialise array to all zeros
