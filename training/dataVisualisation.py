@@ -1,24 +1,10 @@
 import numpy as np
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.utils import class_weight
-from sklearn import metrics
-from sklearn import preprocessing
-from sklearn import decomposition
 from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
-from tensorflow.keras.models import load_model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D
-from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense
-from tensorflow.keras import metrics as mt
-import math
 import seaborn as sns
 
 #shape [N,6,184]
-data=np.load("data/signal.npy")
+data=np.load("data/positive_0.npy")
 
 #DC in first 112 columns
 DC=data[:,:,:112,]

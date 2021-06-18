@@ -33,7 +33,7 @@ Class to test the trigger classifier by plotting:
 
 To run the tester you'll need to change the location of the file specified in the data member fName declared on [line 30](https://github.com/rtysonCLAS12/CLAS12AIElectronTrigger/blob/master/src/org/jlab/trigger/Tester.java#L30). These Hipo files require the TimeBasedTrkg::TBHits, ECAL::hits, REC::Track, REC::Particle and RUN::config banks.
 
-The tester class can also save the DataSet produced on this hipo file. This will be separated into "signal" and "background" files containing the positive and negative sample elements respectively as this makes life easier for training and testing. These files are in the NumPy .npy format to be read in by the python scripts contained in the training directory.
+The tester class can also save the DataSet produced on this hipo file. This will be separated into "positive" and "negative" files containing the positive and negative sample elements respectively as this makes life easier for training and testing. These files are in the NumPy .npy format to be read in by the python scripts contained in the training directory.
 
 ## Training
 
@@ -45,6 +45,7 @@ Depencencies:
 - math
 - matplotlib
 - tensorflow
+- scikit-learn
 - time
 
 ## CPU or GPU Usage

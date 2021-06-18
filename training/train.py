@@ -1,18 +1,7 @@
 import numpy as np
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.utils import class_weight
-from sklearn import metrics
-from sklearn import preprocessing
-from sklearn import decomposition
-from sklearn.metrics import log_loss
 from matplotlib import pyplot
-from tensorflow.keras.models import load_model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D, Reshape
-from tensorflow.keras.layers import Conv2D, MaxPool2D, Input, concatenate
+from tensorflow.keras.layers import Conv2D, Input, concatenate
 from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense
 from tensorflow.keras import optimizers as opt 
 from tensorflow.keras import metrics as mt
@@ -28,12 +17,12 @@ t0 = time.time()
 saveDir='plots/' #Directory where the plots are printed
 
 #load data separated into positive and negative samples
-signal=np.load("data/signal0.npy")
+signal=np.load("data/positive_0.npy")
 
 #load positive sample separated into several files
 for i in range(1, 29):
     print("signal"+str(i))
-    a = np.load("data/signal"+str(i)+".npy")
+    a = np.load("data/positive"+str(i)+".npy")
     signal=np.vstack((signal,a))
 
 #create Y label of 1 for positive sample
@@ -41,10 +30,10 @@ signalLab0=np.zeros([len(signal),1])
 signalLab1=np.ones([len(signal),1])
 signalLab=np.vstack((signalLab1,signalLab0))
 
-bg=np.load("data/bg0.npy")
+bg=np.load("data/negative_0.npy")
 for i in range(1,29):
     print("bg"+str(i))
-    b=np.load("data/bg"+str(i)+".npy")
+    b=np.load("data/negative"+str(i)+".npy")
     bg=np.vstack((bg,b))
     
 bg=bg[0:len(signal),:]#balance datasets

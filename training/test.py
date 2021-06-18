@@ -1,27 +1,8 @@
 import numpy as np
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.utils import class_weight
-from sklearn import metrics
-from sklearn import preprocessing
-from sklearn import decomposition
-from sklearn.metrics import log_loss
 from matplotlib import pyplot
-from matplotlib.colors import LogNorm
 from tensorflow.keras.models import load_model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D, Reshape
-from tensorflow.keras.layers import Conv2D, MaxPool2D, Input, concatenate
-from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense
-from tensorflow.keras import optimizers as opt 
-from tensorflow.keras import metrics as mt
-from tensorflow.keras import backend as K
-import tensorflow as tf
 import math
 import time
-import seaborn as sns
 
 
 def nll_loss_fn(y_true, y_pred):
@@ -33,13 +14,13 @@ t0 = time.time()
 saveDir='plots/' #Directory where the plots are printed
 
 #load data separated into positive and negative samples
-signal=np.load("data/signal19.npy") 
+signal=np.load("data/positive_0.npy") 
 
 #load positive sample separated into several files
-for i in range(20,29):
-    print("signal"+str(i))
-    a = np.load("data/signal"+str(i)+".npy")
-    signal=np.vstack((signal,a))
+#for i in range(20,29):
+ #   print("signal"+str(i))
+  #  a = np.load("data/signal"+str(i)+".npy")
+   # signal=np.vstack((signal,a))
 
 print(signal.shape)
 
@@ -48,11 +29,11 @@ signalLab0=np.zeros([len(signal),1])
 signalLab1=np.ones([len(signal),1])
 signalLab=np.vstack((signalLab1,signalLab0))
 
-bg=np.load("data/bg19.npy")
-for i in range(20,29):
-    print("bg"+str(i))
-    b=np.load("data/bg"+str(i)+".npy")
-    bg=np.vstack((bg,b))
+bg=np.load("data/negative_0.npy")
+#for i in range(20,29):
+ #   print("bg"+str(i))
+  #  b=np.load("data/bg"+str(i)+".npy")
+   # bg=np.vstack((bg,b))
     
 print(bg.shape)
 bg=bg[0:len(signal),:] #balance datasets
