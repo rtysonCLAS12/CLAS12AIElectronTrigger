@@ -1,6 +1,8 @@
 # CLAS12AIElectronTrigger
 
-This repository contains the java implementation of a deep learning approach to a Level 3 Electron trigger for CLAS12 and the python scripts requried to train it.
+This repository contains the java implementation of a deep learning approach to a Level 3 Electron trigger for CLAS12 and the python scripts required to train it.
+
+NB: At the moment this only works for torus-1 (inbending) data.
 
 ## InputDataStream
 
