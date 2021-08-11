@@ -28,8 +28,8 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 public class Tester {
 	//Need to change the following to point to the input .hipo file
 	//static String fName= "/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/out_clas_005038.evio.00105-00109.hipo";
-        static String fName= "/Users/gavalian/Work/DataSpace/evio/clas_003852.evio.981.hipo";
-	
+        //static String fName= "/Users/gavalian/Work/DataSpace/evio/clas_003852.evio.981.hipo";
+	static String fName= "infile.hipo";//"/Users/gavalian/Work/DataSpace/level3/out_clas_005038.evio.00105-00109.hipo";
 	/*
 	 * Main Function, runs the different relevant tests.
 	 */
@@ -68,6 +68,7 @@ public class Tester {
 			double avRate=Test(Data,1, BatchSizeT,TrialPerBatch,false,networkLoc);
 			gRates.addPoint(BatchSizeT, avRate, 0, 0);
 			gRatesEvent.addPoint(BatchSizeT, avRate/6, 0, 0);//6 predictions per event, one for each sector
+                        System.out.printf("\trate = : %8d %8.2f\n",BatchSizeT,avRate);
 			if(avRate>bestAvRate) {
 				bestAvRate=avRate;
 				bestBatchSize=BatchSizeT;
