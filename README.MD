@@ -8,9 +8,11 @@ NB: At the moment this only works for torus-1 (inbending) data.
 ## Compiling with Maven
 
 To compile cd to CLAS12AIElectronTrigger repository. Run the command:
+
 mvn package
 
 This will package the dependencies for the project into a jar, along with the Tester class as executable, into a directory called target/. You can then run this using:
+
 java -jar target/AITrigger-0.0.1-SNAPSHOT-shaded.jar
 
 ## InputDataStream
