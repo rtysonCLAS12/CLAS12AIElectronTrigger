@@ -7,7 +7,34 @@
 
   <packaging>jar</packaging>
 
+  <properties>
+    <!-- Newer version of CUDA, needs GLIBC 2.23-->
+    <!--<dl4j-master.version>1.0.0-M1.1</dl4.j-master.version>
+	<dl4j.backend>deeplearning4j-cuda-11.2</dl4j.backend> 
+	<nd4j.backend>nd4j-cuda-11.2-platform</nd4j.backend>-->
+
+    <dl4j-master.version>1.0.0-beta7</dl4j-master.version>
+    <dl4j.backend>deeplearning4j-cuda-10.2</dl4j.backend> 
+    <nd4j.backend>nd4j-cuda-10.2-platform</nd4j.backend>
+
+    <!-- Uncomment for CPU usage -->
+    <!--<dl4j.backend>deeplearning4j-core</dl4j.backend> 
+        <nd4j.backend>nd4j-native</nd4j.backend>-->
+
+    <java.version>1.8</java.version>
+    <logback.version>1.1.7</logback.version>
+    <javacpp.version>1.8</javacpp.version>
+    <tensorflow.version>2.2.0</tensorflow.version>
+    <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
+    <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
+    <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <revision>1.0.2-SNAPSHOT</revision>
+  </properties>
+
   <repositories>
+    <!-- repositories for groot and hipo4 -->
     <repository>
       <id>j4np-maven</id>
       <url>https://clasweb.jlab.org/jhep/maven</url>
@@ -18,6 +45,7 @@
     </repository>
   </repositories>
 
+  <!-- groot and hipo4 -->
   <dependencies>
     <dependency>
       <groupId>org.jlab</groupId>
@@ -30,78 +58,116 @@
       <artifactId>jnp-hipo4</artifactId>
       <version>4.1-SNAPSHOT</version>
     </dependency>
-<!--     <dependency>
-      <groupId>org.jlab.coat</groupId>
-      <artifactId>coat-libs</artifactId>
-      <version>6.3.0-SNAPSHOT</version>
-      </dependency> -->
-<!--
-    <dependency>
-      <groupId>org.jlab.coda</groupId>
-      <artifactId>jclara</artifactId>
-      <version>4.3-SNAPSHOT</version>
+
+    <!-- Redist needed if you don't have CUDA 10.2 installed
+         ie only have more recent CUDA versions.
+         Error message will be something like
+         org.nd4j.linalg.factory.Nd4jBackend$NoAvailableBackendException -->
+   <dependency>
+      <groupId>org.bytedeco</groupId>
+      <artifactId>cuda-platform-redist</artifactId>
+      <version>10.2-7.6-1.5.3</version>
     </dependency>
--->
-<!--
+
+    <!-- Recommended nd4j and dl4j dependencies -->
     <dependency>
-	  <groupId>org.bytedeco</groupId>
-	  <artifactId>cuda-platform-redist</artifactId>
-	  <version>10.2-7.6-1.5.3</version>
+      <groupId>org.nd4j</groupId>
+      <artifactId>${nd4j.backend}</artifactId>
+      <version>${dl4j-master.version}</version>
     </dependency>
-    -->
     <dependency>
       <groupId>org.deeplearning4j</groupId>
-   <!--   <artifactId>deeplearning4j-cuda-10.2</artifactId> -->
-      <artifactId>deeplearning4j-core</artifactId> 
-      <version>1.0.0-beta7</version>
-  </dependency>
-  <dependency>
+      <artifactId>${dl4j.backend}</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-nlp</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.nd4j</groupId>
-      <!-- <artifactId>nd4j-cuda-10.2</artifactId>  -->
-     <artifactId>nd4j-native-platform</artifactId>     
-      <version>1.0.0-beta7</version>
-  </dependency>
+      <artifactId>nd4j-tensorflow</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-zoo</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+
+
   </dependencies>
   
   <build>
-    <extensions>
-      <extension>
-	<groupId>org.apache.maven.wagon</groupId>
-	<artifactId>wagon-ssh-external</artifactId>
-	<version>2.8</version>
-      </extension>
-    </extensions>
+
     <plugins>
+
+       <!-- Needed to execute shade -->
       <plugin>
-	<artifactId>maven-assembly-plugin</artifactId>
-	<version>2.6</version>
-	<configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>org.jlab.trigger.Tester</mainClass>
-            </manifest>
-          </archive>
-	</configuration>
-	<executions>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${exec-maven-plugin.version}</version>
+        <executions>
           <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
             <goals>
-              <goal>single</goal>
+              <goal>exec</goal>
             </goals>
           </execution>
-	</executions>
+        </executions>
+        <configuration>
+          <executable>java</executable>
+        </configuration>
       </plugin>
+
+       <!-- shade plugin required to create uber-jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven-shade-plugin.version}</version>
+        <configuration>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
+          <shadedClassifierName>${shadedClassifier}</shadedClassifierName>
+          <createDependencyReducedPom>true</createDependencyReducedPom>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>org/datanucleus/**</exclude>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>reference.conf</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+		  <mainClass>org.jlab.trigger.Tester</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build> 
-
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <revision>1.0.2-SNAPSHOT</revision>
-  </properties>
 
 </project>
