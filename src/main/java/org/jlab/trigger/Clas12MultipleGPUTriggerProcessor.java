@@ -12,7 +12,6 @@ import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.jita.conf.CudaEnvironment; 
 import org.deeplearning4j.parallelism.ParallelInference;
 import org.deeplearning4j.parallelism.inference.InferenceMode;
 import org.jlab.groot.data.GraphErrors;
@@ -112,12 +111,6 @@ public class Clas12MultipleGPUTriggerProcessor implements TriggerProcessor {
     }
     
     public static void main(String[] args){
-
-	CudaEnvironment.getInstance().getConfiguration()
-            // key option enabled
-            .allowMultiGPU(true)
-            // cross-device access is used for faster model averaging over pcie
-            .allowCrossDeviceAccess(true);
 	
 	TCanvas canvasRates = new TCanvas("Event Rate",800,500);
 	canvasRates.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
