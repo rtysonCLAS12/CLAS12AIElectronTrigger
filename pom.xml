@@ -20,7 +20,7 @@
     <dl4j.backend>deeplearning4j-cuda-10.2</dl4j.backend> 
     <nd4j.backend>nd4j-cuda-10.2-platform</nd4j.backend>
 
-    <!-- Uncomment for CPU usage -->
+    <!-- Uncomment block for CPU usage -->
     <!--<dl4j-master.version>1.0.0-beta7</dl4j-master.version>
     <dl4j.backend>deeplearning4j-core</dl4j.backend> 
     <nd4j.backend>nd4j-native</nd4j.backend>-->
@@ -169,7 +169,8 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 		  <!--<mainClass>org.jlab.trigger.Tester</mainClass>-->
-		  <mainClass>org.jlab.trigger.Clas12MultipleGPUTriggerProcessor</mainClass>
+		  <!--<mainClass>org.jlab.trigger.Clas12MultipleGPUTriggerProcessor</mainClass>-->
+		  <mainClass>org.jlab.trigger.Clas12AffinityManagerTriggerProcessor</mainClass>
                 </transformer>
               </transformers>
             </configuration>

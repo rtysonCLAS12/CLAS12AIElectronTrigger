@@ -12,8 +12,7 @@ import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.deeplearning4j.parallelism.ParallelInference;
-import org.deeplearning4j.parallelism.inference.InferenceMode;
+import org.nd4j.linalg.factory.Nd4j;
 import org.jlab.groot.data.GraphErrors;
 import org.jlab.groot.ui.TCanvas;
 import java.time.Duration;
@@ -23,12 +22,11 @@ import java.time.Instant;
  *
  * @authors gavalian, tyson
  */
-public class Clas12MultipleGPUTriggerProcessor implements TriggerProcessor {
+public class Clas12AffinityManagerTriggerProcessor implements TriggerProcessor {
     
     double inferenceThreshold = 0.5;
     int NWorkers=1;
     ComputationGraph network;
-    ParallelInference pi;
     
     /**
 	 *  Sets the threshold on the response above which to call the trigger
@@ -73,17 +71,6 @@ public class Clas12MultipleGPUTriggerProcessor implements TriggerProcessor {
     public void initNetwork(){
     	try {
         	network = KerasModelImport.importKerasModelAndWeights("trained_model.h5");
-		 pi = new ParallelInference.Builder(network)
-            // BATCHED mode is kind of optimization: if number of incoming requests is too high - PI will be batching individual queries into single batch. If number of requests will be low - queries will be processed without batching
-		.inferenceMode(InferenceMode.SEQUENTIAL)//SEQUENTIAL,BATCHED
-
-            // max size of batch for BATCHED mode. you should set this value with respect to your environment (i.e. gpu memory amounts)
-		     //.batchLimit(BatchSize)
-
-            // set this value to number of available computational devices, either CPUs or GPUs
-		.workers(NWorkers)
-		
-		.build();
         } catch (IOException e) {
         	System.out.println("IO Exception");
         	e.printStackTrace();
@@ -105,71 +92,63 @@ public class Clas12MultipleGPUTriggerProcessor implements TriggerProcessor {
 	 */
     public void processNext(InputDataStream stream){
     	INDArray[] array = stream.next();
-        INDArray result = pi.output(array)[0];
+        INDArray result = network.output(array)[0];
         applyThreshold(result);
         stream.apply(result);
     }
     
     public static void main(String[] args){
+
+	Integer deviceID=0;
+	if(args.length!=0){
+	    deviceID=Integer.parseInt(args[0]);
+	}
+
+	Nd4j.getAffinityManager().allowCrossDeviceAccess(false);
+	Nd4j.getAffinityManager().unsafeSetDevice(deviceID);
 	
-	TCanvas canvasRates = new TCanvas("Event Rate",800,500);
+	TCanvas canvasRates = new TCanvas("Event Rate with GPU"+deviceID,800,500);
 	canvasRates.setDefaultCloseOperation(TCanvas.EXIT_ON_CLOSE);
 	canvasRates.setLocationRelativeTo(null);
 	canvasRates.setVisible(true);
 	
 	try {
-	    int maxWorkers=3;
-	    ComputationGraph network = KerasModelImport.importKerasModelAndWeights("trained_model.h5");
-	    for(int i=1; i<=maxWorkers;i++){
-		Clas12MultipleGPUTriggerProcessor processor = new Clas12MultipleGPUTriggerProcessor();
 	    
-		ParallelInference pi = new ParallelInference.Builder(network)
-		    .inferenceMode(InferenceMode.SEQUENTIAL)
-		    .workers(i)
-		    .build();
-		System.out.println("Nb of workers: "+i);
+	     ComputationGraph networkTmp = KerasModelImport.importKerasModelAndWeights("trained_model.h5");
 
-		GraphErrors gRates= new GraphErrors();
+	    GraphErrors gRates= new GraphErrors();
 		
-		for(int size=1;size<21;size++) {
-		    System.out.println("Batch Size: "+size);
-		    int BatchSize=10*size;
-		    HipoInputDataStream stream = new HipoInputDataStream();
-		    //Assumes batch in nb of events ie batch will be of size 6*BatchSize
-		    stream.setBatch(BatchSize);
+	    for(int size=1;size<21;size++) {
+		System.out.println("Batch Size: "+size);
+		int BatchSize=10*size;
+		HipoInputDataStream stream = new HipoInputDataStream();
+		//Assumes batch in nb of events ie batch will be of size 6*BatchSize
+		stream.setBatch(BatchSize);
 		
-		    //String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/out_clas_005038.evio.00105-00109.hipo";
-		    String fName= "/tmp/2143411t/data/out_clas_005038.evio.00105-00109.hipo";
-		    stream.open(fName);
-		    processor.setThreshold(0.2);
-		    double avRate=0;
-		    INDArray[] array = stream.next();
-		    for(int n=0;n<100;n++){
-			Instant start = Instant.now();
-			INDArray result = pi.output(array)[0];
-			Instant end = Instant.now();
-			double timeElapsed = Duration.between(start, end).toNanos()*1e-9; 
-			double rate=BatchSize/timeElapsed;
-			System.out.println("Batch: "+n+" rate: "+rate+" time: "+timeElapsed);
-			avRate+=rate;
-		    }
-		    avRate=avRate/100;
-		    gRates.addPoint(BatchSize, avRate, 0, 0);
+		//String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/out_clas_005038.evio.00105-00109.hipo";
+		String fName= "/tmp/2143411t/data/out_clas_005038.evio.00105-00109.hipo";
+		stream.open(fName);
+		double avRate=0;
+		INDArray[] array = stream.next();
+		for(int n=0;n<100;n++){
+		    Instant start = Instant.now();
+		    INDArray result = networkTmp.output(array)[0];
+		    Instant end = Instant.now();
+		    double timeElapsed = Duration.between(start, end).toNanos()*1e-9; 
+		    double rate=BatchSize/timeElapsed;
+		    System.out.println("Batch: "+n+" rate: "+rate+" time: "+timeElapsed);
+		    avRate+=rate;
 		}
-		gRates.setTitle("Event Rate vs Batch Size with "+(i)+" GPU");
-		gRates.setTitleX("Batch Size (in events ie 6 inference per event)");
-		gRates.setTitleY("Event Rate [Hz]");
-		gRates.setLineColor(i+1);
-		gRates.setMarkerColor(i+1);
-		if(i==1){
-		    canvasRates.draw(gRates,"AP");
-		} else{
-		    canvasRates.draw(gRates,"sameAP");
-		}
-	    
+		avRate=avRate/100;
+		gRates.addPoint(BatchSize, avRate, 0, 0);
 	    }
-	    canvasRates.getCanvas().getPad(0).setLegend(true);
-	    canvasRates.getCanvas().getPad(0).setLegendPosition(400, 250);
+	    gRates.setTitle("Event Rate vs Batch Size with GPU");
+	    gRates.setTitleX("Batch Size (in events ie 6 inference per event)");
+	    gRates.setTitleY("Event Rate [Hz]");
+	    gRates.setLineColor(2);
+	    gRates.setMarkerColor(2);
+	    canvasRates.draw(gRates,"AP");
+	    
 	    canvasRates.getCanvas().getPad(0).setTitle(canvasRates.getTitle());
 	    System.out.println("Done!");
 	} catch (IOException e) {
