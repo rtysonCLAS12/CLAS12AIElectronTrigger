@@ -41,14 +41,69 @@ public class Tester {
      * Main Function, runs the different relevant tests.
      */
     public static void main(String[] args) {
-	int NEvents=6000;
-	//Load Data, last two arguments are the minimum and maximum amount of superlayer segments
-	MultiDataSet Data=Tester.ParseDataForTesting(NEvents,5,6);
-	String networkLoc="trained_model.h5";
+
+	//String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/"; //rg-m
+	String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/background/rga_fall2018/";
+	/*String[] dirs= new String[6];
+	dirs[0]="015048";
+	dirs[1]="015049";
+	dirs[2]="015050";
+	dirs[3]="015052";
+	dirs[4]="015055";
+	dirs[5]="015066";*/
+
+	String[] dirs= new String[3];
+	dirs[0]=baseLoc+"tor-1.00_sol-1.00/45nA_10604MeV/10k/";
+	dirs[1]=baseLoc+"tor-1.00_sol-1.00/50nA_10604MeV/10k/";
+	dirs[2]=baseLoc+"tor-1.00_sol-1.00/55nA_10604MeV/10k/";
+
+	
+	String outDir=baseLoc+"trainingSamples/";
+
+	String[] outdirs = new String[3];
+	outdirs[0]=outDir +"45nA_";
+	outdirs[1]=outDir +"50nA_";
+	outdirs[2]=outDir +"55nA_";
+	
+	for (int dir=0;dir<3;dir++){
+	    for (int file=1;file<101;file++){//file+=5){
+
+		    String zeros="0000";
+		    if(file>9){
+			zeros="000";
+			if(file==100){zeros="00";}
+		    }
+
+		    String fileS=String.valueOf(file);
+		    String fileS2=String.valueOf(file+4);
+
+		    //String fName2=baseLoc+dirs[dir]+"/rec_clas_"+dirs[dir]+".evio.000"+fileS+".hipo";
+		    
+		    //String fName2=baseLoc+dirs[dir]+"/rec_clas_"+dirs[dir]+".evio.000"+fileS+"-000"+fileS2+".hipo";
+
+		    String fName2=dirs[dir]+zeros+fileS+".hipo";
+
+		    int NEvents=10000; //check how many files there are 
+		    //Load Data, last two arguments are the minimum and maximum amount of superlayer segments
+		    //MultiDataSet Data=Tester.ParseDataForTesting(fName2,NEvents,5,6);
+		    MultiDataSet Data=Tester.ParseBackground(fName2,NEvents);
+		    String networkLoc="trained_model.h5";
 		
-	//You can save the datafiles by uncommenting the next line.
-	Tester.SaveData(Data, "training/data/","0");
-		
+		    //String endNameSave=dirs[dir]+"_"+fileS;
+		    //You can save the datafiles by uncommenting the next line.
+		    //Tester.SaveData(Data, outDir,endNameSave);
+		    
+		    
+		    String endNameSave="background_"+fileS;
+		    System.out.printf("writing file "+endNameSave);
+		    Tester.SaveBackground(Data, outdirs[dir],endNameSave);
+
+	    }
+	}
+	
+
+	/*UNCOMMENT FOR TESTING
+	
 	//Here we measure the EventRate as a function of BatchSize.
 	Tester.predRateVsBatchSize(Data,networkLoc);
 		
@@ -62,7 +117,7 @@ public class Tester {
 	masterFrame.add(masterCanvas);
         masterFrame.pack();
         masterFrame.setMinimumSize(new Dimension(800,500));
-        masterFrame.setVisible(true);
+        masterFrame.setVisible(true);*/
 	
     }
 	
@@ -112,28 +167,57 @@ public class Tester {
 	//Separate signal and bg files
 	INDArray DataArraySignal=Nd4j.zeros(nPreds/2,6,184);
 	INDArray DataArrayBg=Nd4j.zeros(nPreds/2,6,184);
+	INDArray PsSignal=Nd4j.zeros(nPreds/2);
+	INDArray PsBg=Nd4j.zeros(nPreds/2);
 	INDArray Labels=Data.getLabels()[0];
 	int sigPred=0,bgPred=0;
 	for(long i=0; i< nPreds;i++) {
 	    //Get DC and EC arrays at index 0 and 1 of Data.getFeatures() and remove channel (ie 4th dimension)
 	    INDArray DC=Data.getFeatures()[0].get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.point(0));
 	    INDArray EC=Data.getFeatures()[1].get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.point(0));
+	    INDArray Ps=Data.getLabels()[1].get(NDArrayIndex.point(i), NDArrayIndex.all());
 	    INDArray Both=Nd4j.hstack(DC,EC);//stack DC and EC arrays for output
 	    //Fill signal and bg arrays
 	    if(Labels.getFloat(i,0)==1) {
 		DataArraySignal.get(NDArrayIndex.point(sigPred), NDArrayIndex.all(), NDArrayIndex.all()).assign(Both);
+		PsSignal.get(NDArrayIndex.point(sigPred)).assign(Ps);
 		sigPred++;
 	    } else if(Labels.getFloat(i,0)==0) {
 		DataArrayBg.get(NDArrayIndex.point(bgPred), NDArrayIndex.all(), NDArrayIndex.all()).assign(Both);
+		PsBg.get(NDArrayIndex.point(bgPred)).assign(Ps);
 		bgPred++;
 	    }
 	}
 	//Write files to desired location
 	File fileSignal = new File(loc+"positive_"+endName+".npy");
 	File fileBg = new File(loc+"negative_"+endName+".npy");
+	File fileSignalPs = new File(loc+"Momentum_positive_"+endName+".npy");
+	File fileBgPs = new File(loc+"Momentum_negative_"+endName+".npy");
 	try {
 	    Nd4j.writeAsNumpy(DataArraySignal,fileSignal);
 	    Nd4j.writeAsNumpy(DataArrayBg,fileBg);
+	    Nd4j.writeAsNumpy(PsSignal,fileSignalPs);
+	    Nd4j.writeAsNumpy(PsBg,fileBgPs);
+	} catch (IOException e) {
+	    System.out.println("Could not write file");
+	}
+    }
+
+    /*
+     * Function to save your background dataset to a desired location.
+     * 
+     * Arguments:
+     * 			Data: ND4J MultiDataSet containing the DC features
+     * 			loc: string to the output directory
+     * 			endName: string set at the end of the file name for example to save multiple files
+     */
+    public static void SaveBackground(MultiDataSet Data, String loc, String endName) {
+	INDArray DC=Data.getFeatures()[0];
+	
+	//Write files to desired location
+	File fileSignal = new File(loc+endName+".npy");
+	try {
+	    Nd4j.writeAsNumpy(DC,fileSignal);
 	} catch (IOException e) {
 	    System.out.println("Could not write file");
 	}
@@ -635,6 +719,48 @@ public class Tester {
 	    return Nd4j.zeros(6,112);
 	}
     }//END FillDCArray
+
+    /*
+     *  Create DC background images for a given sector. Uses a different bank 
+     *  structure than for tracks.
+     *  
+     * Arguments:
+     *  		dchits: Bank containing information from the drift chambers.
+     *  		sector: sector for which to create the image
+     *  
+     * Returns:
+     * 			DC image for a given sector.
+     */
+    public static INDArray FillDCBgArray(Bank dchits, int sector) {
+	//Initialise array to all zeros
+	INDArray DCVals = Nd4j.zeros(6,112);
+	for (int k = 0; k < dchits.getRows(); k++) {
+	    int sectorDC = dchits.getInt("sector", k);
+	    if (sectorDC == sector) { //check that the hits are in the right sector
+		int layer = dchits.getInt("layer", k);
+		int wire =  dchits.getInt("component", k);
+
+
+		//Need to convert layers going from 1 to 36
+		// (or 0 to 35 by taking away 1)
+		// into sl going from 1 to 6
+		// layer=(superlayer-1)*6 + n, n[0-5]
+		// eg: layer=36 is in superlayer 6
+		// eg: layer=15 is in superlayer 3
+		int superlayer = (layer-1)/6 + 1;
+		
+
+		//System.out.println("layer "+layer+" superlayer: "+superlayer+" wire: "+wire);
+
+		//need to increment by 1/6 not assign 1/6!!
+		double tempElement=DCVals.getDouble(superlayer-1,wire-1) + 1.0/6.0;
+	   
+		//array index 0-5 not 1-6
+		DCVals.putScalar(new int[] {superlayer-1,wire-1}, tempElement);
+	    }
+	}
+	return DCVals;
+    }//END FillDCBgArray
 	
 
     /*
@@ -687,13 +813,13 @@ public class Tester {
      * the Labels used to distinguish these and the momentum of the particle associated with the DC track.
      * 	 
      */
-    public static MultiDataSet ParseDataForTesting(int nPreds, int minSL, int maxSL) {
+    public static MultiDataSet ParseDataForTesting(String fName2,int nPreds, int minSL, int maxSL) {
 	INDArray DCArray=Nd4j.zeros(nPreds,6,112,1);
 	INDArray ECArray=Nd4j.zeros(nPreds,6,72,1);
 	INDArray Labels=Nd4j.zeros(nPreds,2);
 	INDArray Ps=Nd4j.zeros(nPreds,1);
 	HipoReader reader = new HipoReader();
-	reader.open(fName);
+	reader.open(fName2);
 	Event event = new Event();
 	Bank dchits = new Bank(reader.getSchemaFactory().getSchema("TimeBasedTrkg::TBHits"));
 	Bank echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::hits"));
@@ -751,14 +877,16 @@ public class Tester {
 				
 		if(EventDCArray.any() && EventECArray.any()) { //check that the images aren't all empty
 		    if(elSectors.contains(sector) && nPosPred<nPreds) { //check for reconstructed electron in sector
-			DCArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(EventDCArray);
-			ECArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(EventECArray);
-			Labels.putScalar(new int[] {nPred,0}, 1); //column 0 set to 1 (both cols initialised to 0)
-			if(pBySector.get(sector)!=null) {
-			    Ps.putScalar(new int[] {nPred,0}, pBySector.get(sector));
+			if(nPosPred<(nPreds/2)){
+			    DCArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(EventDCArray);
+			    ECArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(EventECArray);
+			    Labels.putScalar(new int[] {nPred,0}, 1); //column 0 set to 1 (both cols initialised to 0)
+			    if(pBySector.get(sector)!=null) {
+				Ps.putScalar(new int[] {nPred,0}, pBySector.get(sector));
+			    }
+			    nPosPred++;
+			    nPred++;
 			}
-			nPosPred++;
-			nPred++;
 		    } else {
 			if(nNegPred<nPosPred) {//Make sure to balance dataset
 			    DCArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(EventDCArray);
@@ -784,6 +912,50 @@ public class Tester {
 	MultiDataSet dataset = new MultiDataSet(toDS,toDSLabels);
 	return dataset;
     }//End of ParseDataForTesting
+
+ /*
+     * Returns the background data parsed into the correct format for the AI Trigger classifier.
+     * 
+     * 
+     * Arguments:
+     *			nPreds: The number of predictions desired.
+     * 
+     * Returns:
+     * 			ND4J MultiDataSet containing DC images for background events
+     * 
+     * 	 
+     */
+    public static MultiDataSet ParseBackground(String fName2,int nPreds) {
+	INDArray DCArray=Nd4j.zeros(nPreds,6,112,1);
+	INDArray Labels=Nd4j.zeros(nPreds,2);
+	INDArray Ps=Nd4j.zeros(nPreds,1);
+	HipoReader reader = new HipoReader();
+	reader.open(fName2);
+	Event event = new Event();
+	Bank dchits = new Bank(reader.getSchemaFactory().getSchema("DC::tdc"));
+	int nPred=0;
+	while (reader.hasNext() == true) {
+	    reader.nextEvent(event);
+	    event.read(dchits);
+			
+	    //loop over each sector
+	    for(int sector=1;sector<7;sector++) {
+		INDArray EventDCArray=FillDCBgArray(dchits,sector);				
+		if(EventDCArray.any() && nPred<nPreds) { //check that the images aren't all empty
+		    DCArray.get(NDArrayIndex.point(nPred), NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.all()).assign(EventDCArray);
+		    nPred++;
+		}// Only take non null arrays
+	    }// Loop over sectors
+	} //Read Event
+	System.out.println("Number of Predictions "+nPred);
+	INDArray[] toDS=new INDArray[2];
+	toDS[0]=DCArray;
+	INDArray[] toDSLabels=new INDArray[2];
+	toDSLabels[0]=Labels;
+	toDSLabels[1]=Ps;
+	MultiDataSet dataset = new MultiDataSet(toDS,toDSLabels);
+	return dataset;
+    }//End of ParseBackground
 	
 	
     /*
