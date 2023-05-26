@@ -12,13 +12,14 @@ import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 
 /**
  *
  * @authors gavalian, tyson
  */
 public class Clas12TriggerProcessor implements TriggerProcessor {
-    
     double inferenceThreshold = 0.5;
     ComputationGraph network;
     
@@ -53,9 +54,9 @@ public class Clas12TriggerProcessor implements TriggerProcessor {
 	 *  Loads the network from the saved weights.
 	 *  
 	 */
-    public void initNetwork(){
+    public void initNetwork(String url){
     	try {
-        	network = KerasModelImport.importKerasModelAndWeights("trained_model.h5");
+        	network = KerasModelImport.importKerasModelAndWeights(url);
         } catch (IOException e) {
         	System.out.println("IO Exception");
         	e.printStackTrace();
@@ -74,29 +75,67 @@ public class Clas12TriggerProcessor implements TriggerProcessor {
 	 *  Arguments:
 	 *  		InputDataStream from which the data is passed to the model.
 	 *  
+	 *             OutputDataStream to which the model results are passed
 	 */
-    public void processNext(InputDataStream stream){
+    public void processNext(InputDataStream stream,OutputDataStream outStream){
     	INDArray[] array = stream.next();
         INDArray result = network.output(array)[0];
-        applyThreshold(result);
-        stream.apply(result);
+        //applyThreshold(result); just write out raw output
+        apply(outStream,result);
     }
+
+     /**
+	  *  Do something with the trigger model predictions
+	  *  
+	  * Arguments:
+	  *                     outStream: OutputDataStream to which the model results are passed
+	  *
+	  * 			results: INDArray containing the model predictions.
+	  *
+	  */
+    public void apply(OutputDataStream outStream,INDArray result) {
+	long batchSize=result.shape()[0]/6;
+
+	INDArray resultsOut=Nd4j.zeros(batchSize,7);
+    	for(int event=0;event<batchSize;event++) {
+	    resultsOut.putScalar(new int[] {event,0},event);
+	    for(int sector=0;sector<6;sector++) {
+		int entry=event*6+sector;
+		resultsOut.putScalar(new int[] {event,sector+1}, result.getFloat(entry,0));
+	       
+            }
+        }
+	
+	outStream.output(resultsOut);
+
+    }//END apply
     
     public static void main(String[] args){
         Clas12TriggerProcessor processor = new Clas12TriggerProcessor();
-        processor.initNetwork();
+        processor.initNetwork("trainedModel_rgb_50nA_inbending.h5");//trainedModel_rgb_50nA_inbending.h5 trained_model.h5
         
         HipoInputDataStream stream = new HipoInputDataStream();
-        String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/out_clas_005038.evio.00105-00109.hipo";
+        String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/rec_clas_006302.evio.00040-00044.hipo";
         stream.open(fName);
         processor.setThreshold(0.2);
-        int NBatches=0;
-        while(stream.hasNext()){
+        
+
+	HipoOutputDataStream outStream = new HipoOutputDataStream();
+	outStream.createBank();
+	String fNameOut="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/outTest.hipo";
+	outStream.open(fNameOut);
+
+	int NBatches=0;
+
+        //while(stream.hasNext()){
+	while(NBatches<1){
             System.out.println("Batch: "+NBatches);
-            processor.processNext(stream);  
+            processor.processNext(stream,outStream);  
             System.out.println("");
             NBatches++;
         }
+
+	outStream.close();
         
     }
 }

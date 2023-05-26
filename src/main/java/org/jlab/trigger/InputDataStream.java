@@ -16,5 +16,5 @@ public interface InputDataStream {
     public void setBatch(int size);
     public boolean hasNext();
     public INDArray[] next();
-    public void apply(INDArray result);
+   
 }

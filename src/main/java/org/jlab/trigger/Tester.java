@@ -42,8 +42,13 @@ public class Tester {
      */
     public static void main(String[] args) {
 
-	//String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/"; //rg-m
-	String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/background/rga_fall2018/";
+	//String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/bgMerging";
+	//String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/background/rga_fall2018/";
+
+	String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/";
+
+	String outDir=baseLoc+"trainingSamples/";
+
 	/*String[] dirs= new String[6];
 	dirs[0]="015048";
 	dirs[1]="015049";
@@ -52,21 +57,31 @@ public class Tester {
 	dirs[4]="015055";
 	dirs[5]="015066";*/
 
-	String[] dirs= new String[3];
+	/*String[] dirs= new String[3];
 	dirs[0]=baseLoc+"tor-1.00_sol-1.00/45nA_10604MeV/10k/";
 	dirs[1]=baseLoc+"tor-1.00_sol-1.00/50nA_10604MeV/10k/";
 	dirs[2]=baseLoc+"tor-1.00_sol-1.00/55nA_10604MeV/10k/";
-
-	
-	String outDir=baseLoc+"trainingSamples/";
 
 	String[] outdirs = new String[3];
 	outdirs[0]=outDir +"45nA_";
 	outdirs[1]=outDir +"50nA_";
 	outdirs[2]=outDir +"55nA_";
+
+	*/
+
+	String[] dirs= new String[1];
+	dirs[0]=baseLoc+"/bgMerging/";
+
+	String[] outdirs = new String[1];
+	outdirs[0]=outDir +"";
+
 	
-	for (int dir=0;dir<3;dir++){
-	    for (int file=1;file<101;file++){//file+=5){
+	
+
+	/*
+	//bg merging writing
+	for (int dir=0;dir<1;dir++){
+	    for (int file=1;file<101;file++){
 
 		    String zeros="0000";
 		    if(file>9){
@@ -75,28 +90,45 @@ public class Tester {
 		    }
 
 		    String fileS=String.valueOf(file);
+
+		    //for bg
+		    String fName2=dirs[dir]+zeros+fileS+".hipo";
+
+		    int NEvents=10000; //check how many files there are 
+		    
+		    MultiDataSet Data=Tester.ParseBackground(fName2,NEvents);
+
+		    String endNameSave="background_"+fileS;
+		    System.out.printf("writing bg file "+endNameSave);
+		    Tester.SaveBackground(Data, outdirs[dir],endNameSave);
+
+	    }
+	}*/
+
+	//data writing
+	for (int dir=0;dir<1;dir++){
+	    int fileCount=0;
+	    for (int file=40;file<60;file+=5){
+
+		    String fileS=String.valueOf(file);
 		    String fileS2=String.valueOf(file+4);
+		    String fileS3=String.valueOf(fileCount);
+		    fileCount++;
 
 		    //String fName2=baseLoc+dirs[dir]+"/rec_clas_"+dirs[dir]+".evio.000"+fileS+".hipo";
 		    
 		    //String fName2=baseLoc+dirs[dir]+"/rec_clas_"+dirs[dir]+".evio.000"+fileS+"-000"+fileS2+".hipo";
 
-		    String fName2=dirs[dir]+zeros+fileS+".hipo";
+		    String fName2=baseLoc+"/rec_clas_006302.evio.000"+fileS+"-000"+fileS2+".hipo";
 
-		    int NEvents=10000; //check how many files there are 
+
+		    int NEvents=100000; //check how many files there are 
 		    //Load Data, last two arguments are the minimum and maximum amount of superlayer segments
-		    //MultiDataSet Data=Tester.ParseDataForTesting(fName2,NEvents,5,6);
-		    MultiDataSet Data=Tester.ParseBackground(fName2,NEvents);
-		    String networkLoc="trained_model.h5";
+		    MultiDataSet Data=Tester.ParseDataForTesting(fName2,NEvents,4,6);
 		
-		    //String endNameSave=dirs[dir]+"_"+fileS;
+		    String endNameSave=fileS3;
 		    //You can save the datafiles by uncommenting the next line.
-		    //Tester.SaveData(Data, outDir,endNameSave);
-		    
-		    
-		    String endNameSave="background_"+fileS;
-		    System.out.printf("writing file "+endNameSave);
-		    Tester.SaveBackground(Data, outdirs[dir],endNameSave);
+		    Tester.SaveData(Data, outdirs[dir],endNameSave);
 
 	    }
 	}

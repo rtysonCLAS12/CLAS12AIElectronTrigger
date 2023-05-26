@@ -144,20 +144,6 @@ public class HipoInputDataStream implements InputDataStream {
 	  */
     public boolean hasNext() {return reader.hasNext();}
     
-    /**
-	  *  Do something with the trigger model predictions
-	  *  
-	  * Arguments:
-	  * 			resutls: INDArray containing the model predictions.
-	  */
-    public void apply(INDArray result) {
-    	for(int event=0;event<batchSize;event++) {
-        	for(int sector=0;sector<6;sector++) {
-            	if(result.getFloat((event*6+sector),0)==1) {
-                	System.out.println("Event "+event+" is predicted to have an electron in sector "+(sector+1));
-                }
-            }
-        }
-    }//END apply
+   
     
 }//EndOfClass
