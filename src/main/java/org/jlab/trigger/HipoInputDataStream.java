@@ -35,8 +35,10 @@ public class HipoInputDataStream implements InputDataStream {
     	reader = new HipoReader();
     	reader.open(url);
     	event = new Event();
-    	dchits = new Bank(reader.getSchemaFactory().getSchema("TimeBasedTrkg::TBHits")); //NB: need to change to dc::hits (?)
-    	echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::hits"));
+    	//dchits = new Bank(reader.getSchemaFactory().getSchema("TimeBasedTrkg::TBHits")); 
+    	//echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::hits"));
+	dchits = new Bank(reader.getSchemaFactory().getSchema("DC::tdc"));
+	echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::adc"));
     }
     /**
 	 *  Sets the batch size defined in number of events, with 6 entries per event
@@ -93,12 +95,25 @@ public class HipoInputDataStream implements InputDataStream {
     	for (int k = 0; k < dchits.getRows(); k++) {
         	int sectorDC = dchits.getInt("sector", k);
         	if (sectorDC == sector) { //check that the hits are in the right sector
-            	int wire = dchits.getInt("wire", k);
-            	int superlayer = dchits.getInt("superlayer", k);
-            	//need to increment by 1/6 not assign 1/6!!
-            	double tempElement=DCVals.getDouble(superlayer-1,wire-1) + 1.0/6.0;
-            	//array index 0-5 not 1-6
-            	DCVals.putScalar(new int[] {superlayer-1,wire-1}, tempElement);
+		    //int wire = dchits.getInt("wire", k);
+		    //int superlayer = dchits.getInt("superlayer", k);
+
+		    int layer = dchits.getInt("layer", k);
+		    int wire =  dchits.getInt("component", k);
+
+
+		    //Need to convert layers going from 1 to 36
+		    // (or 0 to 35 by taking away 1)
+		    // into sl going from 1 to 6
+		    // layer=(superlayer-1)*6 + n, n[0-5]
+		    // eg: layer=36 is in superlayer 6
+		    // eg: layer=15 is in superlayer 3
+		    int superlayer = (layer-1)/6 + 1;
+
+		    //need to increment by 1/6 not assign 1/6!!
+		    double tempElement=DCVals.getDouble(superlayer-1,wire-1) + 1.0/6.0;
+		    //array index 0-5 not 1-6
+		    DCVals.putScalar(new int[] {superlayer-1,wire-1}, tempElement);
             }
         }
     	return DCVals;
@@ -118,20 +133,24 @@ public class HipoInputDataStream implements InputDataStream {
     	//Initialise array to all zeros
     	INDArray ECVals = Nd4j.zeros(6,72);
     	for (int k = 0; k < echits.getRows(); k++) {
-        	float energy = echits.getFloat("energy", k)/3;
-        	int strip = echits.getInt("strip", k);
-        	int sectorEC = echits.getInt("sector", k);
-        	int layer=echits.getInt("layer", k);
-        	if(sectorEC==sector) {//check that the hits are in the right sector
-            	//Layer 1-3: PCAL, 4-6: ECin, 7-9: ECout
-            	//Array indexing Rows 0-2: PCAL, 3-5: ECin + ECout (strips 0-71)
-            	//Array indexing columns: 0-35: ECin, 36-71: ECout
-            	if(layer>6) {
+	    //float energy = echits.getFloat("energy", k)/3;
+	    float energy =(float) echits.getInt("ADC", k)/10000 ;
+	    //int strip = echits.getInt("strip", k);
+	    int strip = echits.getInt("component", k);
+	    int sectorEC = echits.getInt("sector", k);
+	    int layer=echits.getInt("layer", k);
+	    if(energy>0.002){//check that energy is above 2 MeV, bg otherwise
+		if(sectorEC==sector) {//check that the hits are in the right sector
+		    //Layer 1-3: PCAL, 4-6: ECin, 7-9: ECout
+		    //Array indexing Rows 0-2: PCAL, 3-5: ECin + ECout (strips 0-71)
+		    //Array indexing columns: 0-35: ECin, 36-71: ECout
+		    if(layer>6) {
                 	strip=strip+36;
                 	layer=layer-3;
-                } 
-            	ECVals.putScalar(new int[] {layer-1,strip-1}, energy);
-            }
+		    } 
+		    ECVals.putScalar(new int[] {layer-1,strip-1}, energy);
+		}
+	    }
         }//loop over echits rows
     	return ECVals;
 	}//END FillECArray

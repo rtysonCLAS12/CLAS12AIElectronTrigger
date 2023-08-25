@@ -45,7 +45,7 @@ public class Tester {
 	//String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/bgMerging";
 	//String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/background/rga_fall2018/";
 
-	String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/";
+	String baseLoc="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-c/";
 
 	String outDir=baseLoc+"trainingSamples/";
 
@@ -69,8 +69,14 @@ public class Tester {
 
 	*/
 
-	String[] dirs= new String[1];
+	/*String[] dirs= new String[1];
 	dirs[0]=baseLoc+"/bgMerging/";
+
+	String[] outdirs = new String[1];
+	outdirs[0]=outDir +"";*/
+
+	String[] dirs= new String[1];
+	dirs[0]=baseLoc+"";
 
 	String[] outdirs = new String[1];
 	outdirs[0]=outDir +"";
@@ -108,7 +114,8 @@ public class Tester {
 	//data writing
 	for (int dir=0;dir<1;dir++){
 	    int fileCount=0;
-	    for (int file=40;file<60;file+=5){
+	    //for (int file=40;file<60;file+=5){
+	    for (int file=0;file<20;file++){
 
 		    String fileS=String.valueOf(file);
 		    String fileS2=String.valueOf(file+4);
@@ -119,10 +126,15 @@ public class Tester {
 		    
 		    //String fName2=baseLoc+dirs[dir]+"/rec_clas_"+dirs[dir]+".evio.000"+fileS+"-000"+fileS2+".hipo";
 
-		    String fName2=baseLoc+"/rec_clas_006302.evio.000"+fileS+"-000"+fileS2+".hipo";
+		    //String fName2=baseLoc+"/rec_clas_006302.evio.000"+fileS+"-000"+fileS2+".hipo";
+
+		    String fName2=baseLoc+"/rec_clas_016246.evio.0000"+fileS+".hipo";
+		    if(file>9){
+			fName2=baseLoc+"/rec_clas_016246.evio.000"+fileS+".hipo";
+		    }
 
 
-		    int NEvents=100000; //check how many files there are 
+		    int NEvents=5000; //check how many files there are 
 		    //Load Data, last two arguments are the minimum and maximum amount of superlayer segments
 		    MultiDataSet Data=Tester.ParseDataForTesting(fName2,NEvents,4,6);
 		
@@ -733,8 +745,21 @@ public class Tester {
 	for (int k = 0; k < dchits.getRows(); k++) {
 	    int sectorDC = dchits.getInt("sector", k);
 	    if (sectorDC == sector) { //check that the hits are in the right sector
-		int wire = dchits.getInt("wire", k);
-		int superlayer = dchits.getInt("superlayer", k);
+		//int wire = dchits.getInt("wire", k);
+		//int superlayer = dchits.getInt("superlayer", k);
+
+		int layer = dchits.getInt("layer", k);
+		int wire =  dchits.getInt("component", k);
+
+
+		//Need to convert layers going from 1 to 36
+		// (or 0 to 35 by taking away 1)
+		// into sl going from 1 to 6
+		// layer=(superlayer-1)*6 + n, n[0-5]
+		// eg: layer=36 is in superlayer 6
+		// eg: layer=15 is in superlayer 3
+		int superlayer = (layer-1)/6 + 1;
+
 		//need to increment by 1/6 not assign 1/6!!
 		double tempElement=DCVals.getDouble(superlayer-1,wire-1) + 1.0/6.0;
 		//array index 0-5 not 1-6
@@ -810,20 +835,24 @@ public class Tester {
 	INDArray ECVals = Nd4j.zeros(6,72);
 		
 	for (int k = 0; k < echits.getRows(); k++) {
-	    float energy = echits.getFloat("energy", k)/3;
-	    int strip = echits.getInt("strip", k);
+	    //float energy = echits.getFloat("energy", k)/3;
+	    float energy =(float) echits.getInt("ADC", k)/10000 ;
+	    //int strip = echits.getInt("strip", k);
+	    int strip = echits.getInt("component", k);
 	    int sectorEC = echits.getInt("sector", k);
 	    int layer=echits.getInt("layer", k);
-	    if(sectorEC==sector) {//check that the hits are in the right sector
-		//Layer 1-3: PCAL, 4-6: ECin, 7-9: ECout
-		//Array indexing Rows 0-2: PCAL, 3-5: ECin + ECout (strips 0-71)
-		//Array indexing columns: 0-35: ECin, 36-71: ECout
-		if(layer>6) {
-		    strip=strip+36;
-		    layer=layer-3;
-		} 
-		ECVals.putScalar(new int[] {layer-1,strip-1}, energy);
+	    if(energy>0.002){//check that energy is above 2 MeV, bg otherwise
+		if(sectorEC==sector) {//check that the hits are in the right sector
+		    //Layer 1-3: PCAL, 4-6: ECin, 7-9: ECout
+		    //Array indexing Rows 0-2: PCAL, 3-5: ECin + ECout (strips 0-71)
+		    //Array indexing columns: 0-35: ECin, 36-71: ECout
+		    if(layer>6) {
+			strip=strip+36;
+			layer=layer-3;
+		    } 
+		    ECVals.putScalar(new int[] {layer-1,strip-1}, energy);
 				
+		}
 	    }
 	}//loop over echits rows
 	return ECVals;
@@ -853,8 +882,10 @@ public class Tester {
 	HipoReader reader = new HipoReader();
 	reader.open(fName2);
 	Event event = new Event();
-	Bank dchits = new Bank(reader.getSchemaFactory().getSchema("TimeBasedTrkg::TBHits"));
-	Bank echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::hits"));
+	/*Bank dchits = new Bank(reader.getSchemaFactory().getSchema("TimeBasedTrkg::TBHits"));
+	  Bank echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::hits"));*/
+	Bank dchits = new Bank(reader.getSchemaFactory().getSchema("DC::tdc"));
+	Bank echits = new Bank(reader.getSchemaFactory().getSchema("ECAL::adc"));
 	Bank parts = new Bank(reader.getSchemaFactory().getSchema("REC::Particle"));
 	Bank track = new Bank(reader.getSchemaFactory().getSchema("REC::Track"));
 	int nPred=0, nPosPred=0, nNegPred=0;

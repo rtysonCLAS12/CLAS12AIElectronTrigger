@@ -112,17 +112,17 @@ public class Clas12TriggerProcessor implements TriggerProcessor {
     
     public static void main(String[] args){
         Clas12TriggerProcessor processor = new Clas12TriggerProcessor();
-        processor.initNetwork("trainedModel_rgb_50nA_inbending.h5");//trainedModel_rgb_50nA_inbending.h5 trained_model.h5
+        processor.initNetwork("trainedModel_rgc_8nA_inbending.h5");//trainedModel_rgb_50nA_inbending.h5 trained_model.h5
         
         HipoInputDataStream stream = new HipoInputDataStream();
-        String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/rec_clas_006302.evio.00040-00044.hipo";
+        String fName="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-c/rec_clas_016246.evio.00000.hipo";
         stream.open(fName);
         processor.setThreshold(0.2);
         
 
 	HipoOutputDataStream outStream = new HipoOutputDataStream();
 	outStream.createBank();
-	String fNameOut="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-b/outTest.hipo";
+	String fNameOut="/w/work5/jlab/hallb/clas12/rg-a/trackingInfo/rg-c/outTest.hipo";
 	outStream.open(fNameOut);
 
 	int NBatches=0;
